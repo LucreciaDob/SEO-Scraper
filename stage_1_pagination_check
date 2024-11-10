@@ -1,1 +1,39 @@
+import requests
+from bs4 import BeautifulSoup
+import re
 
+def check_pagination(base_url, output_file="pagination_summary.md"):
+    try:
+        response = requests.get(base_url)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            # Find all pagination links (e.g., ?page=, /page/, etc.)
+            pagination_links = soup.find_all('a', href=True)
+            pagination_patterns = set()
+
+            for link in pagination_links:
+                href = link['href']
+                # Check for pagination patterns like "?page=1", "/page/1", etc.
+                if re.search(r'(page=|/page/)\d+', href):
+                    pagination_patterns.add(href)
+
+            # Summarize the patterns
+            if pagination_patterns:
+                with open(output_file, 'w') as f:
+                    f.write(f"# Pagination Patterns for {base_url}\n\n")
+                    f.write("## Detected Patterns:\n")
+                    for pattern in sorted(pagination_patterns):
+                        f.write(f"- `{pattern}`\n")
+                print(f"Pagination patterns saved to {output_file}")
+            else:
+                print("No pagination patterns found.")
+        else:
+            print(f"Failed to fetch the page. Status code: {response.status_code}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+# Example usage
+if __name__ == "__main__":
+    url = input("Enter the URL of the blog section: ")
+    check_pagination(url)
