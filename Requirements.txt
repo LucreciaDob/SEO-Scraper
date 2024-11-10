@@ -1,0 +1,1 @@
+Necessary packages: requests, beautifulsoup4, pandas, openpyxl for Excel handling.
